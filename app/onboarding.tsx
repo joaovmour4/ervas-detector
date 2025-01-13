@@ -1,11 +1,14 @@
 import React from 'react';
 import { View, ImageBackground, Text, Button, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 
-const InitialScreen = ({ navigation }: any) => {
+const onboarding = ({ navigation }: any) => {
+  const router = useRouter()
   const handleStart = async () => {
-    await AsyncStorage.setItem('hasLaunched', 'true');
-    navigation.replace('Home');
+    await AsyncStorage.setItem('hasLaunched', 'true')
+    // navigation.navigate('index');
+    router.navigate('/(tabs)')
   };
 
   return (
@@ -33,4 +36,4 @@ const styles = StyleSheet.create({
   },
 })
 
-export default InitialScreen;
+export default onboarding;
