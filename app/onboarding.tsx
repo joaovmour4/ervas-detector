@@ -3,12 +3,11 @@ import { View, ImageBackground, Text, Button, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
-const onboarding = ({ navigation }: any) => {
+const onboarding = () => {
   const router = useRouter()
   const handleStart = async () => {
     await AsyncStorage.setItem('hasLaunched', 'true')
-    // navigation.navigate('index');
-    router.navigate('/(tabs)')
+    router.navigate('/login')
   };
 
   return (

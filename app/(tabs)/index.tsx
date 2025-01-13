@@ -7,27 +7,12 @@ const Index = () => {
   const clearFirstLaunch = async () => {
     try {
       await AsyncStorage.clear();
-      console.log('Chave "hasLaunched" removida com sucesso!');
+      console.log('AsyncStorage limpo com sucesso!');
       // router.push('/onboarding')
     } catch (error) {
       console.error('Erro ao remover a chave "hasLaunched":', error);
     }
   };
-
-  const router = useRouter();
-
-  React.useEffect(() => {
-    const checkFirstAccess = async () => {
-      const isFirstAccess = await AsyncStorage.getItem('hasLaunched');
-      
-      if (!isFirstAccess) {
-        await AsyncStorage.setItem('hasLaunched', 'false');
-        router.push('/onboarding'); // Redireciona para a tela de onboarding
-      }
-    };
-
-    checkFirstAccess();
-  }, []);
 
   return(
     <View style={styles.container}>
