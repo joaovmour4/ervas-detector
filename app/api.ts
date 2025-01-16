@@ -8,11 +8,13 @@ const api = axios.create({
 api.interceptors.request.use(
   async config => {
     const token = await AsyncStorage.getItem('userToken')
-    if(token)
+    if(token){
       config.headers.Authorization = `Bearer ${token}`
+    }
     return config
   },
   error => {
+    console.log("entrou no erro")
     return Promise.reject(error)
   }
 )

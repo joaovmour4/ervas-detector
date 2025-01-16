@@ -27,6 +27,7 @@ export default function RootLayout() {
     <Stack>
       <Stack.Screen name="onboarding" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: true, headerTransparent: true }} />
+      <Stack.Screen name="addAnalysis" options={{ headerShown: true, headerTitle: 'Realizar Análise' }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="+not-found" />
       <StatusBar style="auto" />
