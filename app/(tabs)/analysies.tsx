@@ -8,6 +8,7 @@ import api from '../api';
 import { AxiosError } from 'axios';
 import mime from 'mime';
 import FormData from 'form-data';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 
 export default function analysies() {
   const navigation = useNavigation()
@@ -27,7 +28,7 @@ export default function analysies() {
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: 'images', // Apenas imagens
       allowsEditing: false, // Permite edição
-      quality: 0.4, // Qualidade máxima da imagem
+      quality: 0.5, // Qualidade máxima da imagem,
     });
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
@@ -38,25 +39,23 @@ export default function analysies() {
 
   const sendAnalysis = async (asset: ImagePicker.ImagePickerAsset) => {
     const formData = new FormData()
-    const trimmedURI = (Platform.OS === 'android') ? asset.uri : asset.uri.replace("file://", "")
-    const response = await fetch(trimmedURI)
-    const blob = await response.blob()
+    const fileResizedUri = await resizeImage(asset.uri)
 
     formData.append('file', {
-      uri: asset.uri,
+      uri: fileResizedUri,
       type: "image/jpeg",
       name: 'image.jpg'
     })
 
     api
       .post('/analysis', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         },
-      },
       )
       .then(response => {
-        console.log(response)
+        // console.log(response)
         Alert.alert('Sucesso', 'Imagem enviada com sucesso: ');
       })
       .catch((error: AxiosError) => {
@@ -64,6 +63,20 @@ export default function analysies() {
         console.log(error.code)
       })
   }
+
+  const resizeImage = async (uri: string) => {
+    try {
+      const manipulatedImage = await manipulateAsync(
+        uri,
+        [{ resize: { width: 640, height: 640 } }], // Redimensiona para 640x640
+        { compress: 1, format: SaveFormat.JPEG } // Comprime e converte para JPEG
+      );
+      return manipulatedImage.uri;
+    } catch (error) {
+      console.error('Erro ao redimensionar a imagem:', error);
+      return null;
+    }
+  };
 
   React.useLayoutEffect(() => {
     navigation.setOptions({
@@ -91,7 +104,7 @@ export default function analysies() {
         )
       })
       }
-      {image && <Image source={{ uri: image }} style={styles.image} />}
+      {/* <Image source={{uri:'https://app-ervas-images.s3.sa-east-1.amazonaws.com/analysis/analysis_47.jpg'}} style={styles.image} /> */}
     </View>
   )
 }
