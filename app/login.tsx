@@ -20,7 +20,7 @@ export default function login() {
             .then(response => {
                 const token = jwtDecode(response.data)
                 AsyncStorage.setItem('userToken', response.data)
-                AsyncStorage.setItem('user', JSON.stringify(token.sub))
+                AsyncStorage.setItem('idUser', JSON.stringify(token.sub))
                 router.navigate('/(tabs)')
             })
             .catch(error => {

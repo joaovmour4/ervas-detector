@@ -7,7 +7,7 @@ export default function user() {
   const [user, setUser] = React.useState<string | null>()
 
   React.useEffect(()=>{
-    AsyncStorage.getItem('user')
+    AsyncStorage.getItem('idUser')
                 .then(user => setUser(user))
   }, [])
 

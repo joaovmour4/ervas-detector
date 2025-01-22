@@ -1,4 +1,4 @@
-import { Alert, Image, Platform, StyleSheet, Text, View } from 'react-native'
+import { Alert, FlatList, Image, Platform, ScrollView, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import AnalysisItemList from '@/components/AnalysisItemList'
 import { Ionicons } from '@expo/vector-icons';
@@ -9,11 +9,14 @@ import { AxiosError } from 'axios';
 import mime from 'mime';
 import FormData from 'form-data';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
+import { AnalysisItemListType } from '@/types/types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function analysies() {
   const navigation = useNavigation()
+  const [idUser, setIdUser] = React.useState<string | null>()
   const router = useRouter()
-  const [analysies, setAnalysies] = React.useState<Array<any>>([])
+  const [analysies, setAnalysies] = React.useState<Array<AnalysisItemListType>>([])
   const [image, setImage] = React.useState<string>()
 
   const takePhoto = async () => {
@@ -92,27 +95,40 @@ export default function analysies() {
     });
   }, [navigation]);
 
+  React.useEffect(() => {
+    const getAnalysies = async ()=> {
+      setIdUser(await AsyncStorage.getItem('idUser'))
+      api
+        .get(`/analysis/user/2`)
+        .then(response => setAnalysies(response.data))
+    }
+    getAnalysies()
+  }, [idUser])
+
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       {!analysies.length ? 
         <Text style={styles.text}>Não há análises no histórico</Text>
       :
-      analysies.map(analysies => {
+      analysies.map(analysis => {
         return (
           <AnalysisItemList 
+            id={analysis.id}
+            thumbnail={analysis.thumbnail}
+            analysis_date={new Date(analysis.analysis_date)}
+            key={analysis.id}
           />
         )
       })
       }
-      {/* <Image source={{uri:'https://app-ervas-images.s3.sa-east-1.amazonaws.com/analysis/analysis_47.jpg'}} style={styles.image} /> */}
-    </View>
+    </ScrollView>
   )
 }
 
 const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#DBE7C9'
+      backgroundColor: '#DBE7C9',
     },
     text: {
       fontSize: 20, 

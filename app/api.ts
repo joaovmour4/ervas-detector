@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios"
 
 const api = axios.create({
-  baseURL: `http://192.168.1.11:8080`,
+  baseURL: `http://192.168.1.50:8080`,
 });
 
 api.interceptors.request.use(
@@ -26,7 +26,7 @@ api.interceptors.response.use(
   (error) => {
     if(error.response && error.response.status === 401){
       AsyncStorage.removeItem('userToken')
-      AsyncStorage.removeItem('user')
+      AsyncStorage.removeItem('idUser')
     }
     return Promise.reject(error)
   }
