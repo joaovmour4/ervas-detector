@@ -2,7 +2,7 @@ import { Alert, FlatList, Image, Platform, ScrollView, StyleSheet, Text, View } 
 import React from 'react'
 import AnalysisItemList from '@/components/AnalysisItemList'
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useRouter } from 'expo-router';
+import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker'
 import api from '../api';
 import { AxiosError } from 'axios';
@@ -11,6 +11,7 @@ import FormData from 'form-data';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { AnalysisItemListType } from '@/types/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import ListSeparatorComponent from '@/components/ListSeparatorComponent';
 
 export default function analysies() {
   const navigation = useNavigation()
@@ -58,8 +59,15 @@ export default function analysies() {
         },
       )
       .then(response => {
-        // console.log(response)
-        Alert.alert('Sucesso', 'Imagem enviada com sucesso: ');
+        Alert.alert('Sucesso', 'Imagem enviada com sucesso: ')
+        api
+          .put(`/analysis/name/${response.data.id}`, { name: `Análise ${response.data.id}` })
+          .then(()=> {
+            router.navigate({
+              pathname: '/resultAnalysis',
+              params: { id: response.data.id }
+            })
+          })
       })
       .catch((error: AxiosError) => {
         Alert.alert('Erro', `Falha ao enviar a imagem. ${error.response?.status}`);
@@ -88,40 +96,46 @@ export default function analysies() {
           name='add'
           size={25}
           backgroundColor="transparent"
-          color="#322E2C"
+          color="#6E8B3D"
           onPress={takePhoto}
         />
       ),
     });
   }, [navigation]);
 
+  const getAnalysies = async ()=> {
+    setIdUser(await AsyncStorage.getItem('idUser'))
+    api
+      .get(`/analysis/user/2`)
+      .then(response => setAnalysies(response.data))
+  }
+
   React.useEffect(() => {
-    const getAnalysies = async ()=> {
-      setIdUser(await AsyncStorage.getItem('idUser'))
-      api
-        .get(`/analysis/user/2`)
-        .then(response => setAnalysies(response.data))
-    }
     getAnalysies()
   }, [idUser])
+  useFocusEffect(
+    React.useCallback(()=>{
+      getAnalysies()
+    }, [])
+  )
 
   return (
-    <ScrollView style={styles.container}>
-      {!analysies.length ? 
-        <Text style={styles.text}>Não há análises no histórico</Text>
-      :
-      analysies.map(analysis => {
-        return (
-          <AnalysisItemList 
-            id={analysis.id}
-            thumbnail={analysis.thumbnail}
-            analysis_date={new Date(analysis.analysis_date)}
-            key={analysis.id}
-          />
-        )
-      })
-      }
-    </ScrollView>
+    <View style={styles.container}>
+      <FlatList 
+        data={analysies}
+        renderItem={({item}) => <AnalysisItemList 
+            id={item.id}
+            name={item.name}
+            thumbnail={item.thumbnail}
+            analysis_date={new Date(item.analysis_date)}
+            key={item.id}
+          />}
+        keyExtractor={item => String(item.id)}
+        ItemSeparatorComponent={
+          () => <ListSeparatorComponent />
+        }
+      />
+    </View>
   )
 }
 

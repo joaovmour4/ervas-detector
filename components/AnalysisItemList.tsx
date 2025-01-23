@@ -2,13 +2,21 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import { AnalysisItemListType } from '@/types/types'
 import { Ionicons } from '@expo/vector-icons'
+import { useRouter } from 'expo-router'
 
 export default function AnalysisItemList(analysis: AnalysisItemListType) {
+  const router = useRouter()
+  const onPress = () => {
+    router.navigate({
+      pathname: '/resultAnalysis',
+      params: { id: analysis.id }
+    })
+  }
   return (
-    <TouchableOpacity style={styles.container}>
+    <TouchableOpacity style={styles.container} onPress={onPress}>
       {analysis.thumbnail && <Image style={styles.thumbnail} source={{ uri: analysis.thumbnail }} />}
       {!analysis.thumbnail && <Ionicons name='help-circle-outline' size={styles.thumbnail.height} color={'black'} style={styles.thumbnail}/>}
-      <Text style={styles.title}>Análise {analysis.id}</Text>
+      <Text style={styles.title}>{analysis.name}</Text>
       <Text style={styles.date}>{analysis.analysis_date.getDate()}/{analysis.analysis_date.getMonth()+1}</Text>
     </TouchableOpacity>
   )
@@ -20,8 +28,6 @@ const styles = StyleSheet.create({
       paddingLeft: 15,
       flexDirection: 'row',
       alignItems: 'center',
-      borderBottomColor: 'rgba(70, 70, 70, 0.2)',
-      borderBottomWidth: 0.3
     },
     thumbnail: {
       width: 75,
