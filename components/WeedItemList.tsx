@@ -71,10 +71,8 @@ export default function WeedItemList( props: Props ) {
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
-        paddingInline: 50,
         paddingBlock: 10,
-        justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
     },
     thumbnail: {
         height: 75,
@@ -89,6 +87,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
     },
     weedTextContainer: {
+        flex: 1
     },
     text: {
         fontSize: 15
@@ -108,7 +107,7 @@ const styles = StyleSheet.create({
         top: 40,
         right: 20,
     },
-      closeIcon: {
+    closeIcon: {
         width: 30,
         height: 30,
     },

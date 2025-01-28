@@ -20,7 +20,27 @@ export default function analysies() {
   const [analysies, setAnalysies] = React.useState<Array<AnalysisItemListType>>([])
   const [image, setImage] = React.useState<string>()
 
-  const takePhoto = async () => {
+  const takePhoto = async ()=> {
+    const options = ['Tirar uma foto', 'Escolher da biblioteca', 'Cancelar']
+    const cancelIndex = 2;
+    Alert.alert(
+      'Escolha uma opção',
+      '',
+      options.map((option, index) => ({
+        text: option,
+        onPress: () => {
+          if (index === 0) {
+            takePhotoFromCamera()
+          } else if (index === 1) {
+            takePhotoFromLibrary()
+          }
+        },
+        style: index === cancelIndex ? 'cancel' : 'default',
+      }))
+    );
+  }
+
+  const takePhotoFromCamera = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
 
     if (status !== 'granted') {
@@ -31,8 +51,31 @@ export default function analysies() {
     // Abre a câmera para capturar uma imagem
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: 'images', // Apenas imagens
-      allowsEditing: false, // Permite edição
+      allowsEditing: true, // Permite edição
       quality: 0.5, // Qualidade máxima da imagem,
+      aspect: [1, 1]
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setImage(result.assets[0].uri);
+      await sendAnalysis(result.assets[0])
+    }
+  };
+
+  const takePhotoFromLibrary = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (status !== 'granted') {
+      alert('Permissão para acessar os arquivos é necessária!');
+      return;
+    }
+
+    // Abre a câmera para capturar uma imagem
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: 'images', // Apenas imagens
+      allowsEditing: true, // Permite edição
+      quality: 0.5, // Qualidade máxima da imagem,
+      aspect: [1, 1]
     });
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
@@ -105,9 +148,12 @@ export default function analysies() {
 
   const getAnalysies = async ()=> {
     setIdUser(await AsyncStorage.getItem('idUser'))
-    api
-      .get(`/analysis/user/2`)
-      .then(response => setAnalysies(response.data))
+    AsyncStorage.getItem('idUser')
+      .then(id => {
+        api
+          .get(`/analysis/user/${id && id.replace(/(?<=^)"|"(?=$)/g, '')}`)
+          .then(response => setAnalysies(response.data))
+      })
   }
 
   React.useEffect(() => {
@@ -143,16 +189,5 @@ const styles = StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: '#DBE7C9',
-    },
-    text: {
-      fontSize: 20, 
-      fontWeight: 'thin', 
-      textAlign: 'center', 
-      paddingBlockStart: 15
-    },
-    image: {
-      width: 200,
-      height: 200,
-      marginTop: 20,
-    },
+    }
 })
