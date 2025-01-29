@@ -1,7 +1,7 @@
-import { StyleSheet, Text, Image, TouchableOpacity, View, FlatList, Alert } from 'react-native'
+import { StyleSheet, Text, Image, TouchableOpacity, View, FlatList, Alert, TextInput } from 'react-native'
 import React from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import api from '../api'
+import api from './api'
 import { ProfileButtonPropsType, UserType } from '@/types/types'
 import { Ionicons } from '@expo/vector-icons'
 import ProfileOptionButton from '@/components/ProfileOptionButton'
@@ -11,27 +11,8 @@ import * as ImagePicker from 'expo-image-picker'
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator'
 import { AxiosError } from 'axios'
 import FormData from 'form-data'
+import ProfileEditField from '@/components/ProfileEditField'
 
-
-const logout = (router: Router) => {
-  Alert.alert(
-    "Sair",
-    "Tem certeza que deseja sair da conta?",
-    [
-      {
-        text: "Cancelar",
-        // onPress: () => console.log("Cancel Pressed"),
-        style: "cancel",
-      },
-      {
-        text: "Ok",
-        onPress: () => Promise.resolve([AsyncStorage.removeItem('userToken'), AsyncStorage.removeItem('user')])
-                              .then(()=> router.replace('/login')),
-      },
-    ]
-  );
-  
-}
 
 const resizeImage = async (uri: string) => {
     try {
@@ -47,26 +28,8 @@ const resizeImage = async (uri: string) => {
     }
 };
 
-export default function user() {
-  const router = useRouter()
+export default function editProfile() {
   const [user, setUser] = React.useState<UserType>()
-  const buttons: Array<ProfileButtonPropsType> = [
-    {
-      text: 'Editar Perfil',
-      iconName: 'person-outline',
-      callbackFn: () => router.navigate('/editProfile')
-    },
-    {
-      text: 'Sobre',
-      iconName: 'information-circle-outline',
-      callbackFn: () => router.navigate('/about')
-    },
-    {
-      text: 'Sair',
-      iconName: 'log-out-outline',
-      callbackFn: ()=> logout(router)
-    }
-  ]
 
   const takePhoto = async ()=> {
     const options = ['Tirar uma foto', 'Escolher da biblioteca', 'Cancelar']
@@ -194,24 +157,10 @@ export default function user() {
           <Ionicons name='pencil' size={20} color={'white'} />
         </TouchableOpacity>
       </View>
-      <Text style={styles.nameText}>{user?.name}</Text>
-      <Text style={styles.otherText}>{user?.email}</Text>
-      <Text style={styles.otherText}>{user?.city}</Text>
-
-      <View style={styles.optionsContainer}>
-        <FlatList
-          data={buttons}
-          renderItem={({item}) => 
-            <ProfileOptionButton 
-              text={item.text}
-              iconName={item.iconName}
-              callbackFn={item.callbackFn}
-            />}
-          keyExtractor={item => item.text}
-          ItemSeparatorComponent={
-              () => <ListSeparatorComponent />
-          }
-        />
+      <View style={styles.fieldsContainer}>
+        <ProfileEditField label='Nome' placeholder={user?.name} />
+        <ProfileEditField label='E-Mail' placeholder={user?.email} />
+        <ProfileEditField label='Cidade' placeholder={user?.city} />
       </View>
     </View>
   )
@@ -266,11 +215,16 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     flex: 0,
   },
-  nameText: {
-    fontSize: 32,
-    fontWeight: 'black'
+  fieldsContainer: {
+    rowGap: 10
   },
   otherText: {
     fontSize: 16,
+  },
+  textInput: {
+    borderWidth: 1,
+    borderRadius: 15,
+    borderColor: 'gray',
+    width: '30%'
   }
 })
