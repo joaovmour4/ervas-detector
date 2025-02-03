@@ -9,9 +9,10 @@ import { AxiosError } from 'axios';
 import mime from 'mime';
 import FormData from 'form-data';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
-import { AnalysisItemListType } from '@/types/types';
+import { AnalysisItemListType, UserType } from '@/types/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ListSeparatorComponent from '@/components/ListSeparatorComponent';
+import * as SecureStorage from 'expo-secure-store'
 
 export default function analysies() {
   const navigation = useNavigation()
@@ -147,13 +148,11 @@ export default function analysies() {
   }, [navigation]);
 
   const getAnalysies = async ()=> {
-    setIdUser(await AsyncStorage.getItem('idUser'))
-    AsyncStorage.getItem('idUser')
-      .then(id => {
-        api
-          .get(`/analysis/user/${id && id.replace(/(?<=^)"|"(?=$)/g, '')}`)
-          .then(response => setAnalysies(response.data))
-      })
+    const user = SecureStorage.getItem('user')
+    const parsedUser = user && JSON.parse(user)
+    api
+      .get(`/analysis/user/${parsedUser.id}`)
+      .then(response => setAnalysies(response.data))
   }
 
   React.useEffect(() => {

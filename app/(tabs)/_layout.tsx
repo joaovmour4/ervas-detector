@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Tabs, useRouter } from 'expo-router';
 import React from 'react';
 import { Button, Platform } from 'react-native';
+import * as SecureStore from 'expo-secure-store'
 
 export default function TabLayout() {
   const router = useRouter();
@@ -10,13 +11,13 @@ export default function TabLayout() {
   React.useEffect(() => {
     const checkFirstAccess = async () => {
       const isFirstAccess = await AsyncStorage.getItem('hasLaunched');
-      const isLoged = await AsyncStorage.getItem('userToken');
+      const isLoged = SecureStore.getItem('userToken');
       
       if (!isFirstAccess) {
         await AsyncStorage.setItem('hasLaunched', 'false');
-        router.push('/onboarding')
+        router.replace('/onboarding')
       }else if(!isLoged){
-        router.push('/login')
+        router.replace('/login')
       }
     };
 

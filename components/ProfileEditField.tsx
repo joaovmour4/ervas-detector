@@ -3,13 +3,18 @@ import React from 'react'
 
 interface props {
     label: string
-    placeholder?: string
+    useState: [
+      string | undefined, 
+      React.Dispatch<React.SetStateAction<string>>
+    ]
 }
 
 export default function ProfileEditField(props: props) {
+  const [value, setValue] = props.useState
+
   return (
     <View style={styles.container}>
-      <Text style={styles.otherText}>{props.label}:</Text><TextInput style={styles.textInput} placeholder={props.placeholder} />
+      <Text style={styles.otherText}>{props.label}:</Text><TextInput style={styles.textInput} value={value} onChangeText={setValue} placeholder={props.label} />
     </View>
   )
 }
@@ -18,7 +23,8 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        columnGap: 15,
     },
     otherText: {
         fontSize: 16,
@@ -28,6 +34,6 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 15,
         borderColor: 'gray',
-        width: '30%'
+        flex: 1
     }
 })

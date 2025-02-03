@@ -1,5 +1,5 @@
 import { StyleSheet, Text, Image, TouchableOpacity, View, FlatList, Alert } from 'react-native'
-import React from 'react'
+import React, { useContext } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import api from '../api'
 import { ProfileButtonPropsType, UserType } from '@/types/types'
@@ -11,27 +11,8 @@ import * as ImagePicker from 'expo-image-picker'
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator'
 import { AxiosError } from 'axios'
 import FormData from 'form-data'
+import { AuthContext } from '../contexts/AuthContext'
 
-
-const logout = (router: Router) => {
-  Alert.alert(
-    "Sair",
-    "Tem certeza que deseja sair da conta?",
-    [
-      {
-        text: "Cancelar",
-        // onPress: () => console.log("Cancel Pressed"),
-        style: "cancel",
-      },
-      {
-        text: "Ok",
-        onPress: () => Promise.resolve([AsyncStorage.removeItem('userToken'), AsyncStorage.removeItem('user')])
-                              .then(()=> router.replace('/login')),
-      },
-    ]
-  );
-  
-}
 
 const resizeImage = async (uri: string) => {
     try {
@@ -48,8 +29,8 @@ const resizeImage = async (uri: string) => {
 };
 
 export default function user() {
+  const Context = useContext(AuthContext)
   const router = useRouter()
-  const [user, setUser] = React.useState<UserType>()
   const buttons: Array<ProfileButtonPropsType> = [
     {
       text: 'Editar Perfil',
@@ -64,7 +45,7 @@ export default function user() {
     {
       text: 'Sair',
       iconName: 'log-out-outline',
-      callbackFn: ()=> logout(router)
+      callbackFn: ()=> logout()
     }
   ]
 
@@ -86,6 +67,28 @@ export default function user() {
         style: index === cancelIndex ? 'cancel' : 'default',
       }))
     );
+  }
+
+  const logout = () => {
+    Alert.alert(
+      "Sair",
+      "Tem certeza que deseja sair da conta?",
+      [
+        {
+          text: "Cancelar",
+          // onPress: () => console.log("Cancel Pressed"),
+          style: "cancel",
+        },
+        {
+          text: "Ok",
+          onPress: async () => {
+            await Context.signOut()
+            router.replace('/login')
+          }
+        },
+      ]
+    );
+    
   }
 
   const takePhotoFromCamera = async () => {
@@ -141,7 +144,7 @@ export default function user() {
     })
   
     api
-      .post(`/users/image/${user?.id}`, formData, {
+      .post(`/users/image/${Context.user?.id}`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -149,7 +152,7 @@ export default function user() {
       )
       .then(() => {
         Alert.alert('Sucesso', 'Imagem enviada com sucesso: ')
-        fetchUserInfo()
+        // fetchUserInfo()
       })
       .catch((error: AxiosError) => {
         Alert.alert('Erro', `Falha ao enviar a imagem. ${error.response?.status}`);
@@ -157,46 +160,45 @@ export default function user() {
       })
   }
 
-  const fetchUserInfo = () => {
-    AsyncStorage.getItem('idUser')
-      .then(id =>{
-        api
-          .get(`/users/id/${id && id.replace(/(?<=^)"|"(?=$)/g, '')}`)
-          .then(response => {
-            setUser(response.data)
-          })
-          .catch(err=>{
-            console.log(err.message)
-          })
-      })
-  }
+  // const fetchUserInfo = () => {
+  //   const user = SecureStorage.getItem('user')
+  //   const parsedUser = user && JSON.parse(user)
+  //   AsyncStorage.getItem('idUser')
+  //   api
+  //     .get(`/users/id/${parsedUser}`)
+  //     .then(response => {
+  //       setUser(response.data)
+  //     })
+  //     .catch(err=>{
+  //       console.log(err.message)
+  //     })
+  // }
 
-  React.useEffect(()=>{
-    AsyncStorage.getItem('idUser')
-      .then(id =>{
-        api
-          .get(`/users/id/${id && id.replace(/(?<=^)"|"(?=$)/g, '')}`)
-          .then(response => {
-            setUser(response.data)
-          })
-          .catch(err=>{
-            console.log(err.message)
-          })
-      })
-  }, [])
+  // React.useEffect(()=>{
+  //   const user = SecureStorage.getItem('user')
+  //   const parsedUser = user && JSON.parse(user)
+  //   api
+  //     .get(`/users/id/${parsedUser.id}`)
+  //     .then(response => {
+  //       setUser(response.data)
+  //     })
+  //     .catch(err=>{
+  //       console.log(err.message)
+  //     })
+  // }, [])
 
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-        {user?.profileImage && <Image style={styles.profileImage} source={{ uri: `${user.profileImage}?timestamp=${new Date().getTime()}` }} />}
-        {!user?.profileImage && <Ionicons name='person-circle-outline' size={styles.profileIcon.height} color={'#666666'} style={styles.profileIcon}/>}
+        {Context.user?.profileImage && <Image style={styles.profileImage} source={{ uri: `${Context.user.profileImage}?timestamp=${new Date().getTime()}` }} />}
+        {!Context.user?.profileImage && <Ionicons name='person-circle-outline' size={styles.profileIcon.height} color={'#666666'} style={styles.profileIcon}/>}
         <TouchableOpacity onPress={takePhoto} style={styles.editIcon}>
           <Ionicons name='pencil' size={20} color={'white'} />
         </TouchableOpacity>
       </View>
-      <Text style={styles.nameText}>{user?.name}</Text>
-      <Text style={styles.otherText}>{user?.email}</Text>
-      <Text style={styles.otherText}>{user?.city}</Text>
+      <Text style={styles.nameText}>{Context.user?.name}</Text>
+      <Text style={styles.otherText}>{Context.user?.email}</Text>
+      <Text style={styles.otherText}>{Context.user?.city}</Text>
 
       <View style={styles.optionsContainer}>
         <FlatList

@@ -87,7 +87,7 @@ export default function resultAnalysis() {
         <View style={styles.container}>
             <View style={styles.nameContainer}>
                 {!isEditing ?
-                    <Text style={styles.textNameContainer}>{analysis?.name}</Text>
+                    <Text style={styles.textNameContainer}>{analysis?.name}</Text> //Não está alutalizando após edição
                     :
                     <TextInput style={styles.textNameContainer} placeholder={analysis?.name} onChangeText={setTempName} />
                 }

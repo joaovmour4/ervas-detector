@@ -1,17 +1,14 @@
-import { StyleSheet, Text, Image, TouchableOpacity, View, FlatList, Alert, TextInput } from 'react-native'
-import React from 'react'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import { StyleSheet, Text, Image, TouchableOpacity, View, Alert } from 'react-native'
+import React, { useContext } from 'react'
 import api from './api'
-import { ProfileButtonPropsType, UserType } from '@/types/types'
 import { Ionicons } from '@expo/vector-icons'
-import ProfileOptionButton from '@/components/ProfileOptionButton'
-import ListSeparatorComponent from '@/components/ListSeparatorComponent'
-import { Router, useRouter } from 'expo-router'
+import { useNavigation } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator'
 import { AxiosError } from 'axios'
 import FormData from 'form-data'
 import ProfileEditField from '@/components/ProfileEditField'
+import { AuthContext } from './contexts/AuthContext'
 
 
 const resizeImage = async (uri: string) => {
@@ -29,7 +26,12 @@ const resizeImage = async (uri: string) => {
 };
 
 export default function editProfile() {
-  const [user, setUser] = React.useState<UserType>()
+  const Context = useContext(AuthContext)
+  const navigation = useNavigation()
+  const [userName, setUserName] = React.useState<string>(`${Context.user?.name}`)
+  const [email, setEmail] = React.useState<string>(`${Context.user?.email}`)
+  const [city, setCity] = React.useState<string>(`${Context.user?.city}`)
+  const [refreshImage, setRefreshImage] = React.useState<string | null | undefined>(new Date().toString())
 
   const takePhoto = async ()=> {
     const options = ['Tirar uma foto', 'Escolher da biblioteca', 'Cancelar']
@@ -104,7 +106,7 @@ export default function editProfile() {
     })
   
     api
-      .post(`/users/image/${user?.id}`, formData, {
+      .post(`/users/image/${Context.user?.id}`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -112,7 +114,8 @@ export default function editProfile() {
       )
       .then(() => {
         Alert.alert('Sucesso', 'Imagem enviada com sucesso: ')
-        fetchUserInfo()
+        setRefreshImage(asset.fileName)
+        // fetchUserInfo()
       })
       .catch((error: AxiosError) => {
         Alert.alert('Erro', `Falha ao enviar a imagem. ${error.response?.status}`);
@@ -120,47 +123,68 @@ export default function editProfile() {
       })
   }
 
-  const fetchUserInfo = () => {
-    AsyncStorage.getItem('idUser')
-      .then(id =>{
-        api
-          .get(`/users/id/${id && id.replace(/(?<=^)"|"(?=$)/g, '')}`)
-          .then(response => {
-            setUser(response.data)
-          })
-          .catch(err=>{
-            console.log(err.message)
-          })
+  const saveEditInfo = async () => {
+    api
+      .put(`/users/${Context.user?.id}`, {
+        name: userName,
+        email: email,
+        city: city
+      })
+      .then((response) => {
+        Context.updateUserData(response.data)
+        console.log(response.data)
+        Alert.alert(
+          'Sucesso',
+          'Usuário editado com sucesso.',
+          [
+            {
+                text: "OK",
+            },
+          ],
+        )
+      })
+      .catch(err => {
+        Alert.alert(
+          'Falha',
+          `${err.data.message}`,
+          [
+            {
+                text: "OK",
+            },
+          ],
+        )
       })
   }
 
-  React.useEffect(()=>{
-    AsyncStorage.getItem('idUser')
-      .then(id =>{
-        api
-          .get(`/users/id/${id && id.replace(/(?<=^)"|"(?=$)/g, '')}`)
-          .then(response => {
-            setUser(response.data)
-          })
-          .catch(err=>{
-            console.log(err.message)
-          })
-      })
-  }, [])
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity onPressOut={saveEditInfo}>
+            <Ionicons 
+                name='save-outline'
+                size={25}
+                backgroundColor="transparent"
+                color="black"
+                style={{ paddingInlineEnd: 10 }}
+            />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, userName, email, city]);
 
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-        {user?.profileImage && <Image style={styles.profileImage} source={{ uri: `${user.profileImage}?timestamp=${new Date().getTime()}` }} />}
-        {!user?.profileImage && <Ionicons name='person-circle-outline' size={styles.profileIcon.height} color={'#666666'} style={styles.profileIcon}/>}
+        {Context.user?.profileImage && <Image style={styles.profileImage} source={{ uri: `${Context.user.profileImage}?base64=${refreshImage}` }} />}
+        {!Context.user?.profileImage && <Ionicons name='person-circle-outline' size={styles.profileIcon.height} color={'#666666'} style={styles.profileIcon}/>}
         <TouchableOpacity onPress={takePhoto} style={styles.editIcon}>
           <Ionicons name='pencil' size={20} color={'white'} />
         </TouchableOpacity>
       </View>
       <View style={styles.fieldsContainer}>
-        <ProfileEditField label='Nome' placeholder={user?.name} />
-        <ProfileEditField label='E-Mail' placeholder={user?.email} />
-        <ProfileEditField label='Cidade' placeholder={user?.city} />
+        <ProfileEditField label='Nome' useState={[userName, setUserName]} />
+        <ProfileEditField label='E-Mail' useState={[email, setEmail]} />
+        <ProfileEditField label='Cidade' useState={[city, setCity]} />
       </View>
     </View>
   )
@@ -171,11 +195,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: '#DBE7C9'
+    backgroundColor: '#DBE7C9',
+    rowGap: 25
   },
-  optionsContainer: {
+  fieldsContainer: {
     flex: 1,
-    width: '85%'
+    width: '85%',
+    rowGap: 10
   },
   imageContainer: {
     paddingBlockStart: 25,
@@ -214,9 +240,6 @@ const styles = StyleSheet.create({
     width: 300,
     borderRadius: 60,
     flex: 0,
-  },
-  fieldsContainer: {
-    rowGap: 10
   },
   otherText: {
     fontSize: 16,

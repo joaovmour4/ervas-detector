@@ -1,40 +1,39 @@
 import { Alert, Image, ImageBackground, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import React from 'react'
+import React, { useContext } from 'react'
 import api from './api'
-import { jwtDecode } from 'jwt-decode'
+import { jwtDecode, JwtPayload } from 'jwt-decode'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useRouter } from 'expo-router'
-import axios from 'axios'
+import { setItemAsync } from 'expo-secure-store'
+import { UserType } from '@/types/types'
+import { AuthContext } from './contexts/AuthContext'
+
+interface JwtPayloadWithUser extends JwtPayload {
+    user: string
+}
 
 export default function login() {
     const router = useRouter()
+    const Context = useContext(AuthContext)
     const [login, setLogin] = React.useState<string>("")
     const [passsword, setPassword] = React.useState<string>("")
 
-    const loginFn = () => {
-        api
-            .post('/auth/login', {
-                name: login,
-                password: passsword
-            })
-            .then(response => {
-                const token = jwtDecode(response.data)
-                AsyncStorage.setItem('userToken', response.data)
-                AsyncStorage.setItem('idUser', JSON.stringify(token.sub))
-                router.navigate('/(tabs)')
-            })
-            .catch(error => {
-                Alert.alert(
-                    "Erro de Login",
-                    "Dados de login incorretos. Tente novamente.",
-                    [
-                        {
-                            text: "OK", // Texto do botão
-                            onPress: () => console.log("OK Pressed"), // Ação ao pressionar o botão
-                        },
-                    ],
-                )
-            })
+    const loginFn = async () => {
+        try {
+            await Context.signIn(login, passsword)
+            router.navigate('/(tabs)')
+        } catch (e) {
+            Alert.alert(
+                "Erro de Login",
+                "Dados de login incorretos. Tente novamente.",
+                [
+                    {
+                        text: "OK", // Texto do botão
+                        onPress: () => console.log("OK Pressed"), // Ação ao pressionar o botão
+                    },
+                ],
+            )
+        }
     }
 
     return (
@@ -62,7 +61,7 @@ export default function login() {
                         secureTextEntry
                     />
                 </View>
-                <View style={styles.buttonView}>
+                <View style={styles.buttonView}> {/* Bugando quando abre o teclado em telas pequenas */}
                     <TouchableOpacity style={styles.signInButton} onPress={loginFn}>
                         <Text style={styles.signInText}>
                             ENTRAR
