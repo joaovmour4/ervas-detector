@@ -1,8 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Tabs, useRouter } from 'expo-router';
 import React from 'react';
-import { Button, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store'
 
 export default function TabLayout() {
@@ -10,13 +9,9 @@ export default function TabLayout() {
   
   React.useEffect(() => {
     const checkFirstAccess = async () => {
-      const isFirstAccess = await AsyncStorage.getItem('hasLaunched');
-      const isLoged = SecureStore.getItem('userToken');
+      const isLoged = await SecureStore.getItemAsync('userToken');
       
-      if (!isFirstAccess) {
-        await AsyncStorage.setItem('hasLaunched', 'false');
-        router.replace('/onboarding')
-      }else if(!isLoged){
+      if(!isLoged){
         router.replace('/login')
       }
     };

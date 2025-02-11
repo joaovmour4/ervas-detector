@@ -90,7 +90,8 @@ const styles = StyleSheet.create({
         flex: 1
     },
     text: {
-        fontSize: 15
+        fontSize: 15,
+        color: '#4A4A4A'
     },
     modalBackground: {
         flex: 1,

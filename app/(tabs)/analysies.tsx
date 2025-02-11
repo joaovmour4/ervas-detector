@@ -6,12 +6,9 @@ import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker'
 import api from '../api';
 import { AxiosError } from 'axios';
-import mime from 'mime';
 import FormData from 'form-data';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
-import { AnalysisItemListType, UserType } from '@/types/types';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import ListSeparatorComponent from '@/components/ListSeparatorComponent';
+import { AnalysisItemListType } from '@/types/types';
 import * as SecureStorage from 'expo-secure-store'
 
 export default function analysies() {
@@ -115,7 +112,6 @@ export default function analysies() {
       })
       .catch((error: AxiosError) => {
         Alert.alert('Erro', `Falha ao enviar a imagem. ${error.response?.status}`);
-        console.log(error.code)
       })
   }
 
@@ -164,6 +160,10 @@ export default function analysies() {
     }, [])
   )
 
+  if(analysies.length === 0){
+    return <View style={styles.container}><Text style={styles.text}>Nenhuma análise encontrada.</Text></View>
+  }
+
   return (
     <View style={styles.container}>
       <FlatList 
@@ -176,9 +176,6 @@ export default function analysies() {
             key={item.id}
           />}
         keyExtractor={item => String(item.id)}
-        ItemSeparatorComponent={
-          () => <ListSeparatorComponent />
-        }
       />
     </View>
   )
@@ -188,5 +185,11 @@ const styles = StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: '#DBE7C9',
+    },
+    text: {
+      fontSize: 18,
+      fontStyle: 'italic',
+      paddingBlockStart: 20,
+      alignSelf: 'center'
     }
 })

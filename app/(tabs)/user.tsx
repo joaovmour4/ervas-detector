@@ -1,36 +1,16 @@
-import { StyleSheet, Text, Image, TouchableOpacity, View, FlatList, Alert } from 'react-native'
+import { StyleSheet, Text, Image, View, FlatList, Alert } from 'react-native'
 import React, { useContext } from 'react'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import api from '../api'
 import { ProfileButtonPropsType, UserType } from '@/types/types'
 import { Ionicons } from '@expo/vector-icons'
 import ProfileOptionButton from '@/components/ProfileOptionButton'
 import ListSeparatorComponent from '@/components/ListSeparatorComponent'
-import { Router, useRouter } from 'expo-router'
-import * as ImagePicker from 'expo-image-picker'
-import { manipulateAsync, SaveFormat } from 'expo-image-manipulator'
-import { AxiosError } from 'axios'
-import FormData from 'form-data'
+import { useFocusEffect, useRouter } from 'expo-router'
 import { AuthContext } from '../contexts/AuthContext'
-
-
-const resizeImage = async (uri: string) => {
-    try {
-      const manipulatedImage = await manipulateAsync(
-        uri,
-        [{ resize: { width: 640, height: 640 } }], // Redimensiona para 640x640
-        { compress: 1, format: SaveFormat.JPEG } // Comprime e converte para JPEG
-      );
-      return manipulatedImage.uri;
-    } catch (error) {
-      console.error('Erro ao redimensionar a imagem:', error);
-      return null;
-    }
-};
 
 export default function user() {
   const Context = useContext(AuthContext)
   const router = useRouter()
+  const [updatePhoto, setUpdatePhoto] = React.useState<number>()
   const buttons: Array<ProfileButtonPropsType> = [
     {
       text: 'Editar Perfil',
@@ -49,26 +29,6 @@ export default function user() {
     }
   ]
 
-  const takePhoto = async ()=> {
-    const options = ['Tirar uma foto', 'Escolher da biblioteca', 'Cancelar']
-    const cancelIndex = 2;
-    Alert.alert(
-      'Escolha uma opção',
-      '',
-      options.map((option, index) => ({
-        text: option,
-        onPress: () => {
-          if (index === 0) {
-            takePhotoFromCamera()
-          } else if (index === 1) {
-            takePhotoFromLibrary()
-          }
-        },
-        style: index === cancelIndex ? 'cancel' : 'default',
-      }))
-    );
-  }
-
   const logout = () => {
     Alert.alert(
       "Sair",
@@ -76,7 +36,6 @@ export default function user() {
       [
         {
           text: "Cancelar",
-          // onPress: () => console.log("Cancel Pressed"),
           style: "cancel",
         },
         {
@@ -91,110 +50,21 @@ export default function user() {
     
   }
 
-  const takePhotoFromCamera = async () => {
-    const statusCamera = await ImagePicker.requestCameraPermissionsAsync()
-  
-    if (!statusCamera.granted) {
-      alert('Permissão para acessar a câmera é necessária!')
-      return;
-    }
-  
-    // Abre a câmera para capturar uma imagem
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: 'images', // Apenas imagens
-      allowsEditing: true, // Permite edição
-      quality: 0.7, // Qualidade máxima da imagem,
-      aspect: [1, 1] // Aceita apenas imagens quadradas
-    });
-  
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      await sendProfileImage(result.assets[0])
-    }
-  };
 
-  const takePhotoFromLibrary = async () => {
-    const statusLibrary = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  
-    if (!statusLibrary.granted) {
-      alert('Permissão para acessar os arquivos é necessária!');
-      return;
-    }
-  
-    // Abre a galeria para selecionar uma imagem
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: 'images', // Apenas imagens
-      allowsEditing: true, // Permite edição
-      quality: 0.7, // Qualidade máxima da imagem,
-      aspect: [1, 1] // Aceita apenas imagens quadradas
-    });
-  
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      await sendProfileImage(result.assets[0])
-    }
-  };
-  
-  const sendProfileImage = async (asset: ImagePicker.ImagePickerAsset) => {
-    const formData = new FormData()
-    const fileResizedUri = await resizeImage(asset.uri)
-  
-    formData.append('file', {
-      uri: fileResizedUri,
-      type: "image/jpeg",
-      name: 'image.jpg'
-    })
-  
-    api
-      .post(`/users/image/${Context.user?.id}`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        },
-      )
-      .then(() => {
-        Alert.alert('Sucesso', 'Imagem enviada com sucesso: ')
-        // fetchUserInfo()
-      })
-      .catch((error: AxiosError) => {
-        Alert.alert('Erro', `Falha ao enviar a imagem. ${error.response?.status}`);
-        console.log(error.code)
-      })
-  }
-
-  // const fetchUserInfo = () => {
-  //   const user = SecureStorage.getItem('user')
-  //   const parsedUser = user && JSON.parse(user)
-  //   AsyncStorage.getItem('idUser')
-  //   api
-  //     .get(`/users/id/${parsedUser}`)
-  //     .then(response => {
-  //       setUser(response.data)
-  //     })
-  //     .catch(err=>{
-  //       console.log(err.message)
-  //     })
-  // }
-
-  // React.useEffect(()=>{
-  //   const user = SecureStorage.getItem('user')
-  //   const parsedUser = user && JSON.parse(user)
-  //   api
-  //     .get(`/users/id/${parsedUser.id}`)
-  //     .then(response => {
-  //       setUser(response.data)
-  //     })
-  //     .catch(err=>{
-  //       console.log(err.message)
-  //     })
-  // }, [])
+  useFocusEffect(
+    React.useCallback(()=>{
+      const fetchUpdatedProfile = async () => {
+        setUpdatePhoto(new Date().getTime())
+      };
+      fetchUpdatedProfile()
+    }, [])
+  )
 
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-        {Context.user?.profileImage && <Image style={styles.profileImage} source={{ uri: `${Context.user.profileImage}?timestamp=${new Date().getTime()}` }} />}
+        {Context.user?.profileImage && <Image style={styles.profileImage} source={{ uri: `${Context.user.profileImage}?timestamp=${updatePhoto}` }} />}
         {!Context.user?.profileImage && <Ionicons name='person-circle-outline' size={styles.profileIcon.height} color={'#666666'} style={styles.profileIcon}/>}
-        <TouchableOpacity onPress={takePhoto} style={styles.editIcon}>
-          <Ionicons name='pencil' size={20} color={'white'} />
-        </TouchableOpacity>
       </View>
       <Text style={styles.nameText}>{Context.user?.name}</Text>
       <Text style={styles.otherText}>{Context.user?.email}</Text>
@@ -210,9 +80,6 @@ export default function user() {
               callbackFn={item.callbackFn}
             />}
           keyExtractor={item => item.text}
-          ItemSeparatorComponent={
-              () => <ListSeparatorComponent />
-          }
         />
       </View>
     </View>
@@ -270,9 +137,11 @@ const styles = StyleSheet.create({
   },
   nameText: {
     fontSize: 32,
-    fontWeight: 'black'
+    fontWeight: 'black',
+    color: '#4A4A4A'
   },
   otherText: {
     fontSize: 16,
+    color: '#4A4A4A'
   }
 })

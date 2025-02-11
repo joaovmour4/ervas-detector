@@ -1,16 +1,7 @@
-import { Alert, Image, ImageBackground, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import React, { useContext } from 'react'
-import api from './api'
-import { jwtDecode, JwtPayload } from 'jwt-decode'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useRouter } from 'expo-router'
-import { setItemAsync } from 'expo-secure-store'
-import { UserType } from '@/types/types'
 import { AuthContext } from './contexts/AuthContext'
-
-interface JwtPayloadWithUser extends JwtPayload {
-    user: string
-}
 
 export default function login() {
     const router = useRouter()
@@ -20,7 +11,7 @@ export default function login() {
 
     const loginFn = async () => {
         try {
-            await Context.signIn(login, passsword)
+            await Context.signIn(login.trim(), passsword.trim())
             router.navigate('/(tabs)')
         } catch (e) {
             Alert.alert(
@@ -28,12 +19,15 @@ export default function login() {
                 "Dados de login incorretos. Tente novamente.",
                 [
                     {
-                        text: "OK", // Texto do botão
-                        onPress: () => console.log("OK Pressed"), // Ação ao pressionar o botão
+                        text: "OK",
                     },
                 ],
             )
         }
+    }
+
+    const signupFn = () => {
+        router.navigate('/signup')
     }
 
     return (
@@ -49,28 +43,26 @@ export default function login() {
                         onChangeText={setLogin}
                         style={styles.input} 
                         placeholder='USUÁRIO'
-                        placeholderTextColor={'#4A2C1A'}
+                        placeholderTextColor={'#6A6A6A'}
+                        autoCapitalize='none'
                     />
                     <TextInput 
                         value={passsword}
                         onChangeText={setPassword}
                         style={styles.input} 
                         placeholder='SENHA' 
-                        placeholderTextColor={'#4A2C1A'}
+                        placeholderTextColor={'#6A6A6A'}
                         textContentType='password'
                         secureTextEntry
+                        autoCapitalize='none'
                     />
                 </View>
-                <View style={styles.buttonView}> {/* Bugando quando abre o teclado em telas pequenas */}
+                <View style={styles.buttonView}>
                     <TouchableOpacity style={styles.signInButton} onPress={loginFn}>
-                        <Text style={styles.signInText}>
-                            ENTRAR
-                        </Text>
+                        <Text style={styles.signInText}>ENTRAR</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.registerButton}>
-                        <Text style={styles.registerText}>
-                            CADASTRAR-SE
-                        </Text>
+                    <TouchableOpacity style={styles.registerButton} onPress={signupFn}>
+                        <Text style={styles.registerText}>CADASTRAR-SE</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -92,8 +84,7 @@ const styles = StyleSheet.create({
     },
     centralView: {
         display: 'flex',
-        flex: 1,
-        maxHeight: '50%',
+        height: 450,
         alignContent: 'center',
         backgroundColor: '#6E8B3D',
         paddingInline: 15,
@@ -150,7 +141,7 @@ const styles = StyleSheet.create({
         fontFamily: 'montserrat',
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#4A2C1A',
+        color: '#4A4A4A',
         textAlign: 'center'
     },
     registerText: {

@@ -7,7 +7,7 @@ export default function ProfileOptionButton( props: ProfileButtonPropsType ) {
 
     return (
         <TouchableOpacity style={styles.container} onPress={props.callbackFn}>
-            <Ionicons name={props.iconName} size={styles.thumbnail.height} color={'black'} style={styles.thumbnail}/>
+            <Ionicons name={props.iconName} size={styles.thumbnail.height} color={'#4A4A4A'} style={styles.thumbnail}/>
             <Text style={styles.text}>{props.text}</Text>
         </TouchableOpacity>
     )
@@ -30,6 +30,7 @@ const styles = StyleSheet.create({
     },
     text: {
         fontSize: 20,
-        textAlign: 'left'
+        textAlign: 'left',
+        color: '#4A4A4A'
     },
 })

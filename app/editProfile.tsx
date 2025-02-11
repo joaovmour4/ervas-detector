@@ -113,26 +113,25 @@ export default function editProfile() {
         },
       )
       .then(() => {
-        Alert.alert('Sucesso', 'Imagem enviada com sucesso: ')
         setRefreshImage(asset.fileName)
-        // fetchUserInfo()
+        console.log(asset.fileName)
+        Alert.alert('Sucesso', 'Imagem enviada com sucesso: ')
+        Context.fetchUserInfo()
       })
       .catch((error: AxiosError) => {
         Alert.alert('Erro', `Falha ao enviar a imagem. ${error.response?.status}`);
-        console.log(error.code)
       })
   }
 
   const saveEditInfo = async () => {
     api
       .put(`/users/${Context.user?.id}`, {
-        name: userName,
-        email: email,
-        city: city
+        name: userName.trim(),
+        email: email.trim(),
+        city: city.trim()
       })
       .then((response) => {
         Context.updateUserData(response.data)
-        console.log(response.data)
         Alert.alert(
           'Sucesso',
           'Usuário editado com sucesso.',
@@ -142,6 +141,7 @@ export default function editProfile() {
             },
           ],
         )
+        navigation.goBack()
       })
       .catch(err => {
         Alert.alert(

@@ -15,7 +15,7 @@ export default function AnalysisItemList(analysis: AnalysisItemListType) {
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       {analysis.thumbnail && <Image style={styles.thumbnail} source={{ uri: analysis.thumbnail }} />}
-      {!analysis.thumbnail && <Ionicons name='help-circle-outline' size={styles.thumbnail.height} color={'black'} style={styles.thumbnail}/>}
+      {!analysis.thumbnail && <Ionicons name='help-circle-outline' size={styles.thumbnail.height} color={'#4A4A4A'} style={styles.thumbnail}/>}
       <Text style={styles.title}>{analysis.name}</Text>
       <Text style={styles.date}>{analysis.analysis_date.getDate()}/{analysis.analysis_date.getMonth()+1}</Text>
     </TouchableOpacity>
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
       fontSize: 18,
       fontWeight: 'normal',
       paddingInlineStart: 20,
-      color: '#322E2C',
+      color: '#4A4A4A',
       flex: 1
     },
     date: {

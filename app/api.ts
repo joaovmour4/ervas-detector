@@ -16,7 +16,6 @@ api.interceptors.request.use(
     return config
   },
   error => {
-    console.log("entrou no erro")
     return Promise.reject(error)
   }
 )
