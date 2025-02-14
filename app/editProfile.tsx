@@ -186,8 +186,8 @@ export default function editProfile() {
             
           />
         }
-        {!Context.user?.profileImage && !Context.loading && 
-          <Ionicons name='person-circle-outline' size={styles.profileIcon.height} color={'#666666'} style={styles.profileIcon}/>
+        {!Context.user?.profileImage && 
+          <Ionicons name='person-circle-outline' size={styles.profileIcon.height} color={'#666666'} style={[styles.profileIcon, { opacity: Context.loading ? 0 : 1 }]}/>
         }
         <TouchableOpacity onPress={takePhoto} style={styles.editIcon}>
           <Ionicons name='pencil' size={20} color={'white'} />
