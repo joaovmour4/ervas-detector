@@ -8,7 +8,7 @@ import WeedItemList from '@/components/WeedItemList'
 import ListSeparatorComponent from '@/components/ListSeparatorComponent'
 import { useNavigation } from 'expo-router'
 
-const { width, height } = Dimensions.get('window')
+const { width } = Dimensions.get('window')
 
 export default function resultAnalysis() {
     const navigation = useNavigation()
@@ -22,11 +22,16 @@ export default function resultAnalysis() {
         setIsModalVisible(!isModalVisible)
     }
 
-    const onPressEditName = () => {
+    const onPressEditName = async () => {
         if(isEditing){
-            api
+            await api
                 .put(`/analysis/name/${id}`, {
                     name: tempName
+                })
+            await api
+                .get(`/analysis/id/${id}`)
+                .then(result => {
+                    setAnalysis(result.data)
                 })
             setTempName(undefined)
         }

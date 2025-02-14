@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, ReactNode } from "react"
+import React, { createContext, useState, useEffect, ReactNode, SetStateAction, Dispatch } from "react"
 import api from "../api"
 import { UserType } from "@/types/types"
 import * as SecureStorage from 'expo-secure-store'
@@ -8,6 +8,7 @@ import { Alert } from "react-native"
 interface AuthContextData {
   user: UserType | null
   loading: boolean
+  setLoading: Dispatch<SetStateAction<boolean>>
   signIn: (login: string, password: string) => Promise<void>
   signUp: (login: string, email: string, city: string, password: string) => Promise<void>
   signOut: () => Promise<void>
@@ -76,12 +77,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function fetchUserInfo() {
-    setUser(JSON.parse(await api.get('/users/id/'+user?.id)))
-    console.log(user)
+    setLoading(true)
+    const userFetched = (await api.get(`/users/id/${user?.id}`)).data as UserType
+    setUser(userFetched)
+    setLoading(false)
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, updateUserData, fetchUserInfo }}>
+    <AuthContext.Provider value={{ user, loading, setLoading, signIn, signUp, signOut, updateUserData, fetchUserInfo }}>
       {children}
     </AuthContext.Provider>
   );

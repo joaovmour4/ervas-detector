@@ -1,4 +1,4 @@
-import { StyleSheet, Text, Image, TouchableOpacity, View, Alert } from 'react-native'
+import { StyleSheet, Text, Image, TouchableOpacity, View, Alert, ActivityIndicator } from 'react-native'
 import React, { useContext } from 'react'
 import api from './api'
 import { Ionicons } from '@expo/vector-icons'
@@ -61,11 +61,10 @@ export default function editProfile() {
       return;
     }
   
-    // Abre a câmera para capturar uma imagem
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: 'images', // Apenas imagens
       allowsEditing: true, // Permite edição
-      quality: 0.7, // Qualidade máxima da imagem,
+      quality: 0.7, // Qualidade da imagem,
       aspect: [1, 1] // Aceita apenas imagens quadradas
     });
   
@@ -82,11 +81,10 @@ export default function editProfile() {
       return;
     }
   
-    // Abre a galeria para selecionar uma imagem
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: 'images', // Apenas imagens
       allowsEditing: true, // Permite edição
-      quality: 0.7, // Qualidade máxima da imagem,
+      quality: 0.7, // Qualidade da imagem,
       aspect: [1, 1] // Aceita apenas imagens quadradas
     });
   
@@ -96,6 +94,7 @@ export default function editProfile() {
   };
   
   const sendProfileImage = async (asset: ImagePicker.ImagePickerAsset) => {
+    Context.setLoading(true)
     const formData = new FormData()
     const fileResizedUri = await resizeImage(asset.uri)
   
@@ -112,13 +111,14 @@ export default function editProfile() {
           },
         },
       )
-      .then(() => {
+      .then(async () => {
         setRefreshImage(asset.fileName)
-        console.log(asset.fileName)
+        Context.setLoading(false)
         Alert.alert('Sucesso', 'Imagem enviada com sucesso: ')
-        Context.fetchUserInfo()
+        await Context.fetchUserInfo()
       })
       .catch((error: AxiosError) => {
+        Context.setLoading(false)
         Alert.alert('Erro', `Falha ao enviar a imagem. ${error.response?.status}`);
       })
   }
@@ -175,8 +175,20 @@ export default function editProfile() {
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-        {Context.user?.profileImage && <Image style={styles.profileImage} source={{ uri: `${Context.user.profileImage}?base64=${refreshImage}` }} />}
-        {!Context.user?.profileImage && <Ionicons name='person-circle-outline' size={styles.profileIcon.height} color={'#666666'} style={styles.profileIcon}/>}
+        {Context.loading && <ActivityIndicator style={{ position: 'absolute', top: '50%', left: '25%' }} animating={Context.loading} size={'large'} />}
+        {Context.user?.profileImage &&
+          <Image 
+            style={[styles.profileImage, { opacity: Context.loading ? 0 : 1 }]} 
+            source={{ uri: `${Context.user.profileImage}?base64=${refreshImage}` }}
+            onLoadStart={()=> Context.setLoading(true)}  
+            onLoadEnd={()=> Context.setLoading(false)}  
+            onError={()=> Context.setLoading(false)}
+            
+          />
+        }
+        {!Context.user?.profileImage && !Context.loading && 
+          <Ionicons name='person-circle-outline' size={styles.profileIcon.height} color={'#666666'} style={styles.profileIcon}/>
+        }
         <TouchableOpacity onPress={takePhoto} style={styles.editIcon}>
           <Ionicons name='pencil' size={20} color={'white'} />
         </TouchableOpacity>
